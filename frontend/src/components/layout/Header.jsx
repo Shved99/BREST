@@ -2,6 +2,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Container from "../common/Container.jsx";
+import { useCart } from "../../context/CartContext.jsx"; // <-- добавить импорт
 
 const Header = () => {
     const navigate = useNavigate();
@@ -20,7 +21,7 @@ const Header = () => {
         >
             <Container
                 className="header-inner"
-                style={{ height: "100%", display: "flex", alignItems: "center" }}
+                style={{height: "100%", display: "flex", alignItems: "center"}}
             >
                 <div
                     style={{
@@ -40,9 +41,9 @@ const Header = () => {
                                 "linear-gradient(135deg, var(--primary), var(--secondary))",
                         }}
                     />
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span style={{ fontWeight: 700, fontSize: 18 }}>Беларусь Маркет</span>
-                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                    <div style={{display: "flex", flexDirection: "column"}}>
+                        <span style={{fontWeight: 700, fontSize: 18}}>Беларусь Маркет</span>
+                        <span style={{fontSize: 11, color: "var(--text-muted)"}}>
               натуральные товары из Беларуси
             </span>
                     </div>
@@ -59,7 +60,7 @@ const Header = () => {
                 >
                     <NavLink
                         to="/"
-                        style={({ isActive }) => ({
+                        style={({isActive}) => ({
                             fontSize: 14,
                             fontWeight: 500,
                             color: isActive ? "var(--primary)" : "var(--text-muted)",
@@ -69,7 +70,7 @@ const Header = () => {
                     </NavLink>
                     <NavLink
                         to="/catalog"
-                        style={({ isActive }) => ({
+                        style={({isActive}) => ({
                             fontSize: 14,
                             fontWeight: 500,
                             color: isActive ? "var(--primary)" : "var(--text-muted)",
@@ -98,7 +99,6 @@ const Header = () => {
                         Отзывы
                     </a>
                 </nav>
-
                 <div
                     style={{
                         display: "flex",
@@ -106,19 +106,42 @@ const Header = () => {
                         gap: 16,
                     }}
                 >
-                    <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                    <div style={{textAlign: "right"}}>
+                        <div style={{fontSize: 12, color: "var(--text-muted)"}}>
                             Доставка по России и СНГ
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 600 }}>
+                        <div style={{fontSize: 14, fontWeight: 600}}>
                             +7 (900) 000-00-00
                         </div>
                     </div>
+
                     <button
                         className="btn btn-outline"
                         onClick={() => navigate("/cart")}
+                        style={{position: "relative"}}
                     >
                         Корзина
+                        {totalItems > 0 && (
+                            <span
+                                style={{
+                                    position: "absolute",
+                                    top: -6,
+                                    right: -6,
+                                    minWidth: 18,
+                                    height: 18,
+                                    borderRadius: 999,
+                                    backgroundColor: "var(--primary)",
+                                    color: "#fff",
+                                    fontSize: 11,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    padding: "0 4px",
+                                }}
+                            >
+                {totalItems}
+              </span>
+                        )}
                     </button>
                 </div>
             </Container>
