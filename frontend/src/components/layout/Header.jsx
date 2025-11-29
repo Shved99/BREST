@@ -3,7 +3,7 @@ import React from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import Container from "../common/Container.jsx";
 import { useCart } from "../../context/CartContext.jsx";
-import logo from "../../assets/logo.png"; // поправь путь, если он другой
+import logo from "../../../public/logo.png"; // поправь путь, если он другой
 
 const DELIVERY_TEXT =
     "Доставка по Москве от 2000р. – 400р., от 4000р. – бесплатно. Доставка за пределы МКАД от 4000р., оплачивается только расстояние от МКАД";
