@@ -1,126 +1,257 @@
 // src/components/layout/Header.jsx
 import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import Container from "../common/Container.jsx";
-import { useCart } from "../../context/CartContext.jsx"; // <-- добавить импорт
+import { useCart } from "../../context/CartContext.jsx";
+import logo from "../../assets/logo.png"; // поправь путь, если он другой
+
+const DELIVERY_TEXT =
+    "Доставка по Москве от 2000р. – 400р., от 4000р. – бесплатно. Доставка за пределы МКАД от 4000р., оплачивается только расстояние от МКАД";
 
 const Header = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { totalItems } = useCart();
+
+    const handleScrollLink = (sectionId) => {
+        // если уже на главной — просто скроллим
+        if (location.pathname === "/") {
+            const el = document.getElementById(sectionId);
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth" });
+            }
+            return;
+        }
+
+        // если на другой странице — переходим на / и передаём, к какому блоку скроллить
+        navigate("/", { state: { scrollTo: sectionId } });
+    };
 
     return (
         <header
             style={{
-                height: "var(--header-height)",
-                backgroundColor: "#ffffff",
-                borderBottom: "1px solid var(--border-subtle)",
                 position: "sticky",
                 top: 0,
                 zIndex: 20,
-                backdropFilter: "blur(8px)",
             }}
         >
-            <Container
-                className="header-inner"
-                style={{height: "100%", display: "flex", alignItems: "center"}}
+            {/* Верхняя серая панель */}
+            <div
+                style={{
+                    backgroundColor: "#e5e5e5",
+                    borderBottom: "1px solid #d4d4d4",
+                    fontSize: 14,
+                }}
             >
-                <div
+                <Container
                     style={{
+                        height: 40,
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
-                        cursor: "pointer",
+                        justifyContent: "space-between",
                     }}
-                    onClick={() => navigate("/")}
                 >
+                    <nav
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 24,
+                        }}
+                    >
+                        <NavLink
+                            to="/"
+                            style={({ isActive }) => ({
+                                color: "#111827",
+                                textDecoration: "none",
+                                fontWeight: isActive ? 600 : 400,
+                            })}
+                        >
+                            Главная
+                        </NavLink>
+
+                        <NavLink
+                            to="/catalog"
+                            style={({ isActive }) => ({
+                                color: "#111827",
+                                textDecoration: "none",
+                                fontWeight: isActive ? 600 : 400,
+                            })}
+                        >
+                            Каталог
+                        </NavLink>
+
+                        {/* О компании — кнопка со скроллом */}
+                        <button
+                            type="button"
+                            onClick={() => handleScrollLink("about")}
+                            style={{
+                                border: "none",
+                                background: "transparent",
+                                padding: 0,
+                                margin: 0,
+                                color: "#111827",
+                                cursor: "pointer",
+                                font: "inherit",
+                            }}
+                        >
+                            О компании
+                        </button>
+
+                        {/* Контакты — тоже скролл */}
+                        <button
+                            type="button"
+                            onClick={() => handleScrollLink("contacts")}
+                            style={{
+                                border: "none",
+                                background: "transparent",
+                                padding: 0,
+                                margin: 0,
+                                color: "#111827",
+                                cursor: "pointer",
+                                font: "inherit",
+                            }}
+                        >
+                            Контакты
+                        </button>
+                    </nav>
+
+                    <div style={{ color: "#111827" }}>Доставка с 9:00 до 21:00</div>
+                </Container>
+            </div>
+
+            {/* Основной зелёный хедер */}
+            <div
+                style={{
+                    backgroundColor: "#97c78c",
+                    borderBottom: "1px solid #7da573",
+                }}
+            >
+                <Container
+                    style={{
+                        height: 72,
+                        display: "grid",
+                        gridTemplateColumns: "auto auto minmax(0,1fr) auto auto",
+                        alignItems: "center",
+                        columnGap: 16,
+                    }}
+                >
+                    {/* Логотип */}
                     <div
                         style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 999,
-                            background:
-                                "linear-gradient(135deg, var(--primary), var(--secondary))",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            cursor: "pointer",
                         }}
-                    />
-                    <div style={{display: "flex", flexDirection: "column"}}>
-                        <span style={{fontWeight: 700, fontSize: 18}}>Беларусь Маркет</span>
-                        <span style={{fontSize: 11, color: "var(--text-muted)"}}>
-              натуральные товары из Беларуси
-            </span>
-                    </div>
-                </div>
-
-                <nav
-                    style={{
-                        marginLeft: "40px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "16px",
-                        flex: 1,
-                    }}
-                >
-                    <NavLink
-                        to="/"
-                        style={({isActive}) => ({
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: isActive ? "var(--primary)" : "var(--text-muted)",
-                        })}
+                        onClick={() => navigate("/")}
                     >
-                        Главная
-                    </NavLink>
-                    <NavLink
-                        to="/catalog"
-                        style={({isActive}) => ({
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: isActive ? "var(--primary)" : "var(--text-muted)",
-                        })}
-                    >
-                        Каталог
-                    </NavLink>
-                    <a
-                        href="#advantages"
-                        style={{
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: "var(--text-muted)",
-                        }}
-                    >
-                        Преимущества
-                    </a>
-                    <a
-                        href="#reviews"
-                        style={{
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: "var(--text-muted)",
-                        }}
-                    >
-                        Отзывы
-                    </a>
-                </nav>
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 16,
-                    }}
-                >
-                    <div style={{textAlign: "right"}}>
-                        <div style={{fontSize: 12, color: "var(--text-muted)"}}>
-                            Доставка по России и СНГ
-                        </div>
-                        <div style={{fontSize: 14, fontWeight: 600}}>
-                            +7 (900) 000-00-00
-                        </div>
+                        <img
+                            src={logo}
+                            alt="Беларусь Маркет"
+                            style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                                border: "2px solid #e4e4e4",
+                                backgroundColor: "#ffffff",
+                                display: "block",
+                            }}
+                        />
                     </div>
 
+                    {/* Кнопка "Каталог" */}
                     <button
-                        className="btn btn-outline"
-                        onClick={() => navigate("/cart")}
-                        style={{position: "relative"}}
+                        type="button"
+                        onClick={() => navigate("/catalog")}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "10px 18px",
+                            borderRadius: 4,
+                            border: "none",
+                            backgroundColor: "#4f7c4f",
+                            color: "#ffffff",
+                            fontSize: 14,
+                            cursor: "pointer",
+                        }}
                     >
-                        Корзина
+                        <span
+                            style={{
+                                display: "inline-flex",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
+                        >
+                            <span
+                                style={{
+                                    width: 12,
+                                    height: 2,
+                                    backgroundColor: "#ffffff",
+                                    display: "block",
+                                }}
+                            />
+                            <span
+                                style={{
+                                    width: 12,
+                                    height: 2,
+                                    backgroundColor: "#ffffff",
+                                    display: "block",
+                                }}
+                            />
+                            <span
+                                style={{
+                                    width: 12,
+                                    height: 2,
+                                    backgroundColor: "#ffffff",
+                                    display: "block",
+                                }}
+                            />
+                        </span>
+                        Каталог
+                    </button>
+
+                    {/* Поиск */}
+                    <SearchBar />
+
+                    {/* Иконка поиска */}
+                    <button
+                        type="button"
+                        style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 4,
+                            border: "1px solid rgba(0,0,0,0.2)",
+                            backgroundColor: "#ffffff",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 18,
+                        }}
+                    >
+                        🔍
+                    </button>
+
+                    {/* Корзина */}
+                    <button
+                        type="button"
+                        onClick={() => navigate("/cart")}
+                        style={{
+                            position: "relative",
+                            width: 36,
+                            height: 36,
+                            borderRadius: 4,
+                            border: "1px solid rgba(0,0,0,0.2)",
+                            backgroundColor: "#ffffff",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        🛒
                         {totalItems > 0 && (
                             <span
                                 style={{
@@ -130,8 +261,8 @@ const Header = () => {
                                     minWidth: 18,
                                     height: 18,
                                     borderRadius: 999,
-                                    backgroundColor: "var(--primary)",
-                                    color: "#fff",
+                                    backgroundColor: "#4f7c4f",
+                                    color: "#ffffff",
                                     fontSize: 11,
                                     display: "flex",
                                     alignItems: "center",
@@ -139,13 +270,77 @@ const Header = () => {
                                     padding: "0 4px",
                                 }}
                             >
-                {totalItems}
-              </span>
+                                {totalItems}
+                            </span>
                         )}
                     </button>
-                </div>
-            </Container>
+                </Container>
+            </div>
+
+            {/* Полоса условий доставки */}
+            <div
+                style={{
+                    backgroundColor: "#4f7c4f",
+                    color: "#ffffff",
+                    fontSize: 12,
+                }}
+            >
+                <Container
+                    style={{
+                        padding: "4px 0",
+                    }}
+                >
+                    {DELIVERY_TEXT}
+                </Container>
+            </div>
         </header>
+    );
+};
+
+const SearchBar = () => {
+    const navigate = useNavigate();
+    const [value, setValue] = React.useState("");
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const q = value.trim();
+        if (!q) return;
+        navigate(`/catalog?search=${encodeURIComponent(q)}`);
+    };
+
+    return (
+        <form
+            onSubmit={handleSubmit}
+            style={{
+                width: "100%",
+            }}
+        >
+            <div
+                style={{
+                    width: "100%",
+                    backgroundColor: "#c4e1ba",
+                    borderRadius: 4,
+                    padding: "0 8px",
+                    height: 36,
+                    display: "flex",
+                    alignItems: "center",
+                }}
+            >
+                <input
+                    type="text"
+                    placeholder="Поиск"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    style={{
+                        border: "none",
+                        outline: "none",
+                        background: "transparent",
+                        width: "100%",
+                        fontSize: 14,
+                    }}
+                />
+            </div>
+        </form>
     );
 };
 

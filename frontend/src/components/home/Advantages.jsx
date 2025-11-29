@@ -1,47 +1,52 @@
-// src/components/home/Advantages.jsx
+// src/components/home/AdvantagesSection.jsx
 import React from "react";
 
 const advantages = [
-    {
-        title: "Натуральные продукты",
-        text: "Подбираем производителя и ассортимент так, чтобы сохранить вкус и качество белорусских товаров.",
-    },
-    {
-        title: "Прямые поставки из Беларуси",
-        text: "Работаем с официальными партнёрами и проверенными поставщиками без лишних посредников.",
-    },
-    {
-        title: "Доставка по всей России и СНГ",
-        text: "Отправляем заказы в крупные города и небольшие населённые пункты удобными службами доставки.",
-    },
+    { title: "Натуральные продукты" },
+    { title: "Прямые поставки из Беларуси" },
+    { title: "Доставка по всей России" },
 ];
 
-const Advantages = () => {
+const AdvantagesSection = () => {
     return (
-        <section className="section" id="advantages">
-            <div className="section-subtitle">Почему нас выбирают</div>
-            <h2 className="section-title">Преимущества магазина</h2>
+        <section
+            style={{
+                marginBottom: 40,
+            }}
+        >
+            <h2
+                style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    textAlign: "center",
+                    marginBottom: 12,
+                }}
+            >
+                Преимущества
+            </h2>
 
-            <div className="grid grid-3">
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 12,
+                    maxWidth: 900,
+                    margin: "0 auto",
+                }}
+            >
                 {advantages.map((item) => (
                     <div
                         key={item.title}
-                        className="card"
-                        style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                        style={{
+                            border: "1px solid #cbd5e1",
+                            borderRadius: 4,
+                            padding: "10px 12px",
+                            textAlign: "center",
+                            fontSize: 14,
+                            backgroundColor: "#f9fafb",
+                        }}
                     >
-                        <div
-                            style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 999,
-                                backgroundColor: "var(--secondary-soft)",
-                                marginBottom: 4,
-                            }}
-                        />
-                        <div style={{ fontWeight: 600, fontSize: 16 }}>{item.title}</div>
-                        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                            {item.text}
-                        </div>
+                        {item.title}
                     </div>
                 ))}
             </div>
@@ -49,4 +54,4 @@ const Advantages = () => {
     );
 };
 
-export default Advantages;
+export default AdvantagesSection;

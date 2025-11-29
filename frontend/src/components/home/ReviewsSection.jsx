@@ -3,7 +3,7 @@ import React from "react";
 
 const reviews = [
     {
-        name: "Анна, Москва",
+        name: "Алексей, Москва",
         text: "Заказывала молочную продукцию и конфеты. Всё приехало свежим, аккуратно упакованным. Вкус — как из детства.",
     },
     {
@@ -11,10 +11,12 @@ const reviews = [
         text: "Особенно понравились колбасы и сервелат. Чувствуется, что продукция не из масс-маркета.",
     },
     {
-        name: "Ольга, Нижний Новгород",
+        name: " Дмитрий, Нижний Новгород",
         text: "Берём здесь косметику «Белита-Витекс» и сувениры. Удобно, что всё белорусское в одном месте.",
     },
 ];
+
+const AVATAR_SRC = "/reviews.png"; // файл лежит в public/uploads/reviews.png
 
 const ReviewsSection = () => {
     return (
@@ -33,11 +35,23 @@ const ReviewsSection = () => {
                             style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: 999,
-                                backgroundColor: "var(--primary-soft)",
+                                borderRadius: "50%",
+                                overflow: "hidden",
                                 marginBottom: 4,
+                                backgroundColor: "var(--primary-soft)",
                             }}
-                        />
+                        >
+                            <img
+                                src={AVATAR_SRC}
+                                alt={review.name}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    display: "block",
+                                }}
+                            />
+                        </div>
                         <div
                             style={{
                                 fontSize: 13,
