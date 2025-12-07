@@ -6,6 +6,7 @@ import Button from "../../components/common/Button.jsx";
 const AdminCategoriesPage = () => {
     const [categories, setCategories] = useState([]);
     const [form, setForm] = useState({ name: "", slug: "" });
+    const [editingId, setEditingId] = useState(null); // null = создаём, не редактируем
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -31,20 +32,53 @@ const AdminCategoriesPage = () => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleCreate = async (e) => {
+    const resetForm = () => {
+        setForm({ name: "", slug: "" });
+        setEditingId(null);
+    };
+
+    // Создание / редактирование
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.name) return;
+        if (!form.name.trim()) return;
+
         try {
-            await axiosClient.post("/admin/categories", {
-                name: form.name,
-                slug: form.slug || undefined,
-            });
-            setForm({ name: "", slug: "" });
+            if (editingId) {
+                // Редактирование категории
+                await axiosClient.put(`/admin/categories/${editingId}`, {
+                    name: form.name.trim(),
+                    slug: form.slug.trim() || undefined,
+                });
+            } else {
+                // Создание новой категории
+                await axiosClient.post("/admin/categories", {
+                    name: form.name.trim(),
+                    slug: form.slug.trim() || undefined,
+                });
+            }
+
+            resetForm();
             loadCategories();
         } catch (e) {
             console.error(e);
-            alert("Ошибка при создании категории.");
+            alert(
+                editingId
+                    ? "Ошибка при обновлении категории."
+                    : "Ошибка при создании категории."
+            );
         }
+    };
+
+    const handleEditClick = (category) => {
+        setEditingId(category._id);
+        setForm({
+            name: category.name || "",
+            slug: category.slug || "",
+        });
+    };
+
+    const handleCancelEdit = () => {
+        resetForm();
     };
 
     const handleDelete = async (id) => {
@@ -52,6 +86,11 @@ const AdminCategoriesPage = () => {
         try {
             await axiosClient.delete(`/admin/categories/${id}`);
             setCategories((prev) => prev.filter((c) => c._id !== id));
+
+            // если удалили категорию, которую редактировали — сбросить форму
+            if (editingId === id) {
+                resetForm();
+            }
         } catch (e) {
             console.error(e);
             alert("Ошибка при удалении категории (возможно, есть товары).");
@@ -65,8 +104,9 @@ const AdminCategoriesPage = () => {
         >
             <h1 style={{ fontSize: 18, margin: 0 }}>Категории</h1>
 
+            {/* Форма создания / редактирования */}
             <form
-                onSubmit={handleCreate}
+                onSubmit={handleSubmit}
                 style={{
                     display: "flex",
                     gap: 8,
@@ -106,7 +146,20 @@ const AdminCategoriesPage = () => {
                         }}
                     />
                 </div>
-                <Button type="submit">Добавить категорию</Button>
+
+                <Button type="submit">
+                    {editingId ? "Сохранить изменения" : "Добавить категорию"}
+                </Button>
+
+                {editingId && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                    >
+                        Отменить
+                    </Button>
+                )}
             </form>
 
             {loading && (
@@ -153,11 +206,28 @@ const AdminCategoriesPage = () => {
                     {categories.map((c) => (
                         <tr
                             key={c._id}
-                            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+                            style={{
+                                borderBottom: "1px solid var(--border-subtle)",
+                                backgroundColor:
+                                    editingId === c._id ? "rgba(148, 163, 184, 0.08)" : "transparent",
+                            }}
                         >
                             <td style={{ padding: "6px" }}>{c.name}</td>
                             <td style={{ padding: "6px" }}>{c.slug}</td>
-                            <td style={{ padding: "6px" }}>
+                            <td style={{ padding: "6px", display: "flex", gap: 8 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => handleEditClick(c)}
+                                    style={{
+                                        border: "none",
+                                        background: "transparent",
+                                        color: "#2563eb",
+                                        cursor: "pointer",
+                                        fontSize: 12,
+                                    }}
+                                >
+                                    Редактировать
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => handleDelete(c._id)}
@@ -166,6 +236,7 @@ const AdminCategoriesPage = () => {
                                         background: "transparent",
                                         color: "var(--primary)",
                                         cursor: "pointer",
+                                        fontSize: 12,
                                     }}
                                 >
                                     Удалить

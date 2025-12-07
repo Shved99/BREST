@@ -10,11 +10,14 @@ const advantages = [
 const AdvantagesSection = () => {
     return (
         <section
+            id="about"
+            className="section"
             style={{
                 marginBottom: 40,
             }}
         >
             <h2
+                className="section-title"
                 style={{
                     fontSize: 16,
                     fontWeight: 600,

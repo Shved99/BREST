@@ -7,31 +7,31 @@ const categories = [
         slug: "dairy",
         title: "Молочная продукция",
         description: "Сыры, творог, сметана и другие молочные продукты.",
-        imageUrl: "/cheese.png",
+        imageUrl: "/uploads/cheese.png",
     },
     {
         slug: "meat",
         title: "Мясные деликатесы",
         description: "Колбасы, ветчина и классические мясные деликатесы.",
-        imageUrl: "/meet.png",
+        imageUrl: "/uploads/meet.png",
     },
     {
         slug: "sweets",
         title: "Кондитерские изделия",
         description: "Шоколад и конфеты «Коммунарка» и другие сладости.",
-        imageUrl: "/pelmeni.png",
+        imageUrl: "/uploads/pelmeni.png",
     },
     {
         slug: "cosmetics",
         title: "Косметика",
         description: "«Белита-Витекс», «Vitex» и другие бренды из Беларуси.",
-        imageUrl: "/main-img.png",
+        imageUrl: "/uploads/main-img.png",
     },
     {
         slug: "souvenirs",
         title: "Сувениры и товары для дома",
         description: "Льняные изделия, керамика и атмосферные сувениры.",
-        imageUrl: "/solenia.png",
+        imageUrl: "/uploads/solenia.png",
     },
 ];
 

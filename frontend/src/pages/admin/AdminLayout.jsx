@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { ADMIN_TOKEN_KEY } from "../../api/axiosClient.js";
-import Button from "../../components/common/Button.jsx";
+import axiosClient from "../../api/axiosClient.js";
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -14,9 +14,20 @@ const AdminLayout = () => {
         }
     }, [navigate]);
 
-    const handleLogout = () => {
-        localStorage.removeItem(ADMIN_TOKEN_KEY);
-        navigate("/admin/login");
+    const handleLogout = async () => {
+        try {
+            await axiosClient.post("/admin/logout");
+        } catch (e) {
+            console.error(e);
+        } finally {
+            localStorage.removeItem(ADMIN_TOKEN_KEY);
+            navigate("/"); // после выхода – на главную страницу витрины
+        }
+    };
+
+    const handleGoToSite = () => {
+        // просто перейти на публичную главную, не трогая токен
+        navigate("/");
     };
 
     return (
@@ -32,10 +43,30 @@ const AdminLayout = () => {
                     gap: 16,
                 }}
             >
-                <div style={{ fontWeight: 700, marginBottom: 8 }}>Админка</div>
-                <div style={{ fontSize: 12, color: "#9ca3af" }}>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>Админка</div>
+                <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 8 }}>
                     Беларусь Маркет
                 </div>
+
+                {/* Кнопка перехода на главную витрины */}
+                <button
+                    type="button"
+                    onClick={handleGoToSite}
+                    style={{
+                        width: "100%",
+                        borderRadius: 999,
+                        border: "1px solid #4b5563",
+                        padding: "6px 10px",
+                        background: "#f9fafb",
+                        color: "#111827",
+                        fontSize: 13,
+                        cursor: "pointer",
+                        marginBottom: 8,
+                    }}
+                >
+                    ← На главную
+                </button>
+
                 <nav style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <NavLink
                         to="/admin/products"
@@ -94,6 +125,7 @@ const AdminLayout = () => {
                     </button>
                 </div>
             </aside>
+
             <main style={{ flex: 1, padding: 24, backgroundColor: "#f3f4f6" }}>
                 <Outlet />
             </main>

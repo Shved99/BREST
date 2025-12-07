@@ -1,4 +1,3 @@
-// src/controllers/authController.js
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
@@ -18,7 +17,6 @@ async function loginAdmin(req, res) {
             return res.status(401).json({ message: "Неверный email или пароль" });
         }
 
-        // сравнение пароля
         const isMatch = await bcrypt.compare(password, user.passwordHash);
         if (!isMatch) {
             return res.status(401).json({ message: "Неверный email или пароль" });
@@ -34,7 +32,7 @@ async function loginAdmin(req, res) {
             expiresIn: "7d",
         });
 
-        res.json({
+        return res.json({
             token,
             user: {
                 id: user._id,
@@ -44,10 +42,24 @@ async function loginAdmin(req, res) {
         });
     } catch (err) {
         console.error("Error in loginAdmin:", err);
-        res.status(500).json({ message: "Ошибка сервера при входе" });
+        return res.status(500).json({ message: "Ошибка сервера при входе" });
+    }
+}
+
+// POST /api/admin/logout
+// Для JWT без сессий logout по сути «формальный» — токен забываем на клиенте.
+// Но эндпоинт оставляем, чтобы фронт мог вызывать единообразно.
+async function logoutAdmin(req, res) {
+    try {
+        // Если позже добавишь refresh-токены/сессии — чистить их здесь.
+        return res.status(200).json({ message: "Вы вышли из админ-панели" });
+    } catch (err) {
+        console.error("Error in logoutAdmin:", err);
+        return res.status(500).json({ message: "Ошибка сервера при выходе" });
     }
 }
 
 module.exports = {
     loginAdmin,
+    logoutAdmin,
 };

@@ -10,7 +10,7 @@ const AdminProductsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // форма создания товара
+    // форма создания / редактирования товара
     const [form, setForm] = useState({
         title: "",
         categoryId: "",
@@ -21,6 +21,9 @@ const AdminProductsPage = () => {
         imageUrl: "",
         inStock: true,
     });
+
+    // id редактируемого товара (null = создаём новый)
+    const [editingId, setEditingId] = useState(null);
 
     const loadProducts = async () => {
         try {
@@ -55,6 +58,10 @@ const AdminProductsPage = () => {
         try {
             await axiosClient.delete(`/admin/products/${id}`);
             setProducts((prev) => prev.filter((p) => p._id !== id));
+
+            if (editingId === id) {
+                resetForm();
+            }
         } catch (e) {
             console.error(e);
             alert("Ошибка при удалении товара.");
@@ -65,7 +72,22 @@ const AdminProductsPage = () => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleCreate = async (e) => {
+    const resetForm = () => {
+        setForm({
+            title: "",
+            categoryId: "",
+            price: "",
+            manufacturer: "",
+            weight: "",
+            volume: "",
+            imageUrl: "",
+            inStock: true,
+        });
+        setEditingId(null);
+    };
+
+    // создание / редактирование
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!form.title || !form.categoryId || !form.price) {
@@ -73,42 +95,66 @@ const AdminProductsPage = () => {
             return;
         }
 
+        const payload = {
+            title: form.title,
+            category: form.categoryId,
+            price: Number(form.price),
+            manufacturer: form.manufacturer || undefined,
+            weight: form.weight || undefined,
+            volume: form.volume || undefined,
+            inStock: form.inStock,
+            images: form.imageUrl ? [form.imageUrl] : [],
+        };
+
         try {
-            const payload = {
-                title: form.title,
-                category: form.categoryId,
-                price: Number(form.price),
-                manufacturer: form.manufacturer || undefined,
-                weight: form.weight || undefined,
-                volume: form.volume || undefined,
-                inStock: form.inStock,
-                images: form.imageUrl ? [form.imageUrl] : [],
-            };
+            if (editingId) {
+                // обновление товара
+                await axiosClient.put(`/admin/products/${editingId}`, payload);
+            } else {
+                // создание нового товара
+                await axiosClient.post("/admin/products", payload);
+            }
 
-            await axiosClient.post("/admin/products", payload);
-
-            // очистка формы
-            setForm({
-                title: "",
-                categoryId: "",
-                price: "",
-                manufacturer: "",
-                weight: "",
-                volume: "",
-                imageUrl: "",
-                inStock: true,
-            });
-
-            // обновить список
+            resetForm();
             loadProducts();
         } catch (e) {
             console.error(e);
-            alert("Не удалось создать товар.");
+            alert(
+                editingId
+                    ? "Не удалось обновить товар."
+                    : "Не удалось создать товар."
+            );
         }
     };
 
+    const handleEditClick = (product) => {
+        setEditingId(product._id);
+
+        setForm({
+            title: product.title || "",
+            // category может быть либо объектом, либо id
+            categoryId: product.category?._id || product.category || "",
+            price: product.price != null ? String(product.price) : "",
+            manufacturer: product.manufacturer || "",
+            weight: product.weight || "",
+            volume: product.volume || "",
+            imageUrl:
+                Array.isArray(product.images) && product.images.length > 0
+                    ? product.images[0]
+                    : "",
+            inStock: Boolean(product.inStock),
+        });
+    };
+
+    const handleCancelEdit = () => {
+        resetForm();
+    };
+
     return (
-        <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div
+            className="card"
+            style={{ padding: 16, display: "flex", flexDirection: "column", gap: 16 }}
+        >
             <div
                 style={{
                     display: "flex",
@@ -123,9 +169,9 @@ const AdminProductsPage = () => {
                 </Button>
             </div>
 
-            {/* Форма создания товара */}
+            {/* Форма создания / редактирования товара */}
             <form
-                onSubmit={handleCreate}
+                onSubmit={handleSubmit}
                 style={{
                     display: "grid",
                     gridTemplateColumns: "2fr 1fr 1fr",
@@ -309,7 +355,19 @@ const AdminProductsPage = () => {
                         В наличии
                     </label>
 
-                    <Button type="submit">Добавить товар</Button>
+                    <Button type="submit">
+                        {editingId ? "Сохранить изменения" : "Добавить товар"}
+                    </Button>
+
+                    {editingId && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleCancelEdit}
+                        >
+                            Отменить
+                        </Button>
+                    )}
                 </div>
             </form>
 
@@ -375,6 +433,10 @@ const AdminProductsPage = () => {
                                 key={p._id}
                                 style={{
                                     borderBottom: "1px solid var(--border-subtle)",
+                                    backgroundColor:
+                                        editingId === p._id
+                                            ? "rgba(148, 163, 184, 0.08)"
+                                            : "transparent",
                                 }}
                             >
                                 <td style={{ padding: "6px" }}>{p.title}</td>
@@ -388,7 +450,20 @@ const AdminProductsPage = () => {
                                 <td style={{ padding: "6px" }}>
                                     {p.isActive ? "Да" : "Нет"}
                                 </td>
-                                <td style={{ padding: "6px" }}>
+                                <td style={{ padding: "6px", display: "flex", gap: 8 }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleEditClick(p)}
+                                        style={{
+                                            border: "none",
+                                            background: "transparent",
+                                            color: "#2563eb",
+                                            cursor: "pointer",
+                                            fontSize: 12,
+                                        }}
+                                    >
+                                        Редактировать
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => handleDelete(p._id)}
@@ -397,11 +472,11 @@ const AdminProductsPage = () => {
                                             background: "transparent",
                                             color: "var(--primary)",
                                             cursor: "pointer",
+                                            fontSize: 12,
                                         }}
                                     >
                                         Удалить
                                     </button>
-                                    {/* при желании здесь же потом добавим "Редактировать" */}
                                 </td>
                             </tr>
                         ))}

@@ -11,12 +11,13 @@ const reviews = [
         text: "Особенно понравились колбасы и сервелат. Чувствуется, что продукция не из масс-маркета.",
     },
     {
-        name: " Дмитрий, Нижний Новгород",
+        name: "Дмитрий, Нижний Новгород",
         text: "Берём здесь косметику «Белита-Витекс» и сувениры. Удобно, что всё белорусское в одном месте.",
     },
 ];
 
-const AVATAR_SRC = "/reviews.png"; // файл лежит в public/uploads/reviews.png
+// если файл лежит в public/uploads/reviews.png
+const AVATAR_SRC = "/reviews.png";
 
 const ReviewsSection = () => {
     return (

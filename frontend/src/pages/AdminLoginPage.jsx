@@ -115,7 +115,7 @@ return (
                             type="email"
                             value={form.email}
                             onChange={(e) => handleChange("email", e.target.value)}
-                            placeholder="admin@belarus-market.local"
+                            placeholder=" login"
                             style={{
                                 padding: "8px 10px",
                                 borderRadius: 10,
@@ -131,7 +131,7 @@ return (
                             type="password"
                             value={form.password}
                             onChange={(e) => handleChange("password", e.target.value)}
-                            placeholder="admin123"
+                            placeholder="password"
                             style={{
                                 padding: "8px 10px",
                                 borderRadius: 10,

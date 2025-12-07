@@ -65,7 +65,7 @@ const HeroSlider = () => {
                             variant="outline"
                             onClick={() =>
                                 document
-                                    .getElementById("advantages")
+                                    .getElementById("about")
                                     ?.scrollIntoView({ behavior: "smooth" })
                             }
                         >
@@ -135,7 +135,6 @@ const HeroSlider = () => {
                         </div>
                     </div>
 
-                    {/* Карточки-тизеры товаров (пока статические) */}
                     <div
                         style={{
                             display: "grid",
