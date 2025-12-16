@@ -7,6 +7,18 @@ const User = require("../models/User");
 const Category = require("../models/Category");
 const Product = require("../models/Product");
 
+// простая функция для генерации slug из title
+function slugify(str) {
+    return str
+        .toLowerCase()
+        .replace(/[«»]/g, "")                // убираем ёлочки
+        .replace(/[^a-z0-9а-яё\s-]/gi, "")   // только буквы/цифры/пробелы/дефисы
+        .trim()
+        .replace(/\s+/g, "-")                // пробелы -> дефисы
+        .replace(/-+/g, "-")                 // несколько дефисов -> один
+        .replace(/^-|-$/g, "");              // убрать дефисы по краям
+}
+
 async function seed() {
     try {
         await connectDB();
@@ -45,7 +57,10 @@ async function seed() {
         ];
 
         const categories = await Category.insertMany(categoriesData);
-        console.log("✅ Категории созданы:", categories.map((c) => c.name).join(", "));
+        console.log(
+            "✅ Категории созданы:",
+            categories.map((c) => c.name).join(", ")
+        );
 
         const catBySlug = {};
         categories.forEach((c) => {
@@ -53,9 +68,11 @@ async function seed() {
         });
 
         // ===== Товары =====
-        // ВАЖНО: картинки лежат во frontend/public,
-        // поэтому в БД сохраняем пути вида "/cheese.png"
-        const productsData = [
+        // ВАЖНО: картинки лежат в frontend/public,
+        // поэтому в БД храним пути вида "/cheese.png", "/pelmeni.png" и т.п.
+        // Физические файлы: frontend/public/cheese.png, frontend/public/pelmeni.png и т.д.
+
+        const rawProducts = [
             // Молочная продукция
             {
                 title: "Сыр полутвёрдый «Брест-Литовск» 45%",
@@ -129,7 +146,7 @@ async function seed() {
                 price: 480,
                 manufacturer: "Коммунарка",
                 weight: "250 г",
-                images: ["/main-img.png"], // можно использовать как общий промо-изображение
+                images: ["/main-img.png"],
                 inStock: true,
                 stockCount: 80,
                 isFeatured: true,
@@ -202,6 +219,12 @@ async function seed() {
                 isFeatured: true,
             },
         ];
+
+        // добавляем slug каждому продукту, чтобы не было slug: null
+        const productsData = rawProducts.map((p) => ({
+            ...p,
+            slug: p.slug || slugify(p.title),
+        }));
 
         const products = await Product.insertMany(productsData);
         console.log("✅ Товары созданы:", products.length, "шт.");
