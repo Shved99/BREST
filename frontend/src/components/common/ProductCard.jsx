@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./Button.jsx";
 import { useCart } from "../../context/CartContext.jsx";
+import { normalizeImageUrl } from "../../utils/imageHelper.js";
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ const ProductCard = ({ product }) => {
 
     const mainImage =
         product.images && product.images.length > 0
-            ? product.images[0]
+            ? normalizeImageUrl(product.images[0])
             : null;
 
     const handleAddToCart = () => {

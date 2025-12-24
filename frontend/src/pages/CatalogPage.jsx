@@ -1,5 +1,5 @@
 // src/pages/CatalogPage.jsx
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import axiosClient from "../api/axiosClient.js";
 import ProductCard from "../components/common/ProductCard.jsx";
@@ -17,9 +17,12 @@ const CatalogPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    // читаем категорию из URL отдельно (источник истины для URL)
+    const categoryParam = searchParams.get("category") || "";
+
     // Фильтры / сортировка
     const [filters, setFilters] = useState({
-        category: searchParams.get("category") || "",
+        category: categoryParam,
         minPrice: "",
         maxPrice: "",
         manufacturer: "",
@@ -28,6 +31,41 @@ const CatalogPage = () => {
         page: 1,
         limit: 12,
     });
+
+    // 1) Если пользователь меняет URL (назад/вперёд/вручную) — обновляем filters.category
+    useEffect(() => {
+        setFilters((prev) => {
+            if (prev.category === categoryParam) return prev;
+            return { ...prev, category: categoryParam, page: 1 };
+        });
+    }, [categoryParam]);
+
+    // Базовые стили
+    const inputStyle = useMemo(
+        () => ({
+            width: "100%",
+            boxSizing: "border-box",
+            padding: "8px 10px",
+            borderRadius: 10,
+            border: "1px solid var(--border-subtle, rgba(0,0,0,.12))",
+            background: "var(--bg-input, #fff)",
+            fontSize: 13,
+            outline: "none",
+        }),
+        []
+    );
+
+    const pillSelectStyle = useMemo(
+        () => ({
+            padding: "6px 10px",
+            borderRadius: 999,
+            border: "1px solid var(--border-subtle, rgba(0,0,0,.12))",
+            background: "var(--bg-input, #fff)",
+            fontSize: 13,
+            outline: "none",
+        }),
+        []
+    );
 
     // Загрузка категорий (один раз)
     useEffect(() => {
@@ -42,7 +80,7 @@ const CatalogPage = () => {
         fetchCategories();
     }, []);
 
-    // Загрузка товаров
+    // Загрузка товаров (БЕЗ setSearchParams внутри!)
     const fetchProducts = useCallback(async () => {
         try {
             setLoading(true);
@@ -61,29 +99,38 @@ const CatalogPage = () => {
             if (filters.inStock) params.inStock = "true";
 
             const res = await axiosClient.get("/products", { params });
+
             setProductsData({
                 items: res.data.items || [],
                 total: res.data.total || 0,
                 page: res.data.page || 1,
                 totalPages: res.data.totalPages || 1,
             });
-
-            // синхронизируем URL с фильтром категории
-            const newParams = {};
-            if (filters.category) newParams.category = filters.category;
-            setSearchParams(newParams, { replace: true });
         } catch (e) {
             console.error(e);
             setError("Не удалось загрузить товары. Попробуйте обновить страницу.");
         } finally {
             setLoading(false);
         }
-    }, [filters, setSearchParams]);
+    }, [filters]);
 
-    // При изменении фильтров — загрузка товаров
+    // 2) При изменении filters — грузим товары
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
+
+    // 3) Синхронизируем URL ТОЛЬКО когда реально меняется filters.category
+    useEffect(() => {
+        const current = searchParams.get("category") || "";
+        const next = filters.category || "";
+
+        if (current === next) return;
+
+        const newParams = {};
+        if (next) newParams.category = next;
+
+        setSearchParams(newParams, { replace: true });
+    }, [filters.category, searchParams, setSearchParams]);
 
     // Обработчики фильтров
     const handleCategoryChange = (e) => {
@@ -134,10 +181,8 @@ const CatalogPage = () => {
         }));
     };
 
-    // Пока корзину не делаем — заглушка
     const handleAddToCart = (product) => {
         console.log("ADD TO CART:", product.title);
-        // здесь позже подключим контекст/стейт корзины
     };
 
     return (
@@ -146,43 +191,31 @@ const CatalogPage = () => {
                 display: "grid",
                 gridTemplateColumns: "260px minmax(0, 1fr)",
                 gap: 24,
+                alignItems: "start",
             }}
         >
             {/* Сайдбар фильтров */}
-            <aside>
+            <aside style={{ alignSelf: "start" }}>
                 <div
                     className="card"
                     style={{
                         position: "sticky",
-                        top: "calc(var(--header-height) + 16px)",
+                        top: "calc(var(--header-height, 64px) + 16px)",
                         display: "flex",
                         flexDirection: "column",
                         gap: 16,
+                        padding: 16,
+                        borderRadius: 16,
+                        border: "1px solid var(--border-subtle, rgba(0,0,0,.12))",
+                        background: "var(--bg-card, #fff)",
                     }}
                 >
                     <div style={{ fontWeight: 600, fontSize: 16 }}>Фильтры</div>
 
                     {/* Категория */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <label
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 500,
-                                marginBottom: 2,
-                            }}
-                        >
-                            Категория
-                        </label>
-                        <select
-                            value={filters.category}
-                            onChange={handleCategoryChange}
-                            style={{
-                                padding: "8px 10px",
-                                borderRadius: 10,
-                                border: "1px solid var(--border-subtle)",
-                                fontSize: 13,
-                            }}
-                        >
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 13, fontWeight: 500 }}>Категория</label>
+                        <select value={filters.category} onChange={handleCategoryChange} style={inputStyle}>
                             <option value="">Все категории</option>
                             {categories.map((cat) => (
                                 <option key={cat._id} value={cat.slug}>
@@ -193,68 +226,37 @@ const CatalogPage = () => {
                     </div>
 
                     {/* Цена */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <label
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 500,
-                                marginBottom: 2,
-                            }}
-                        >
-                            Цена, ₽
-                        </label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 13, fontWeight: 500 }}>Цена, ₽</label>
                         <div style={{ display: "flex", gap: 8 }}>
                             <input
                                 type="text"
+                                inputMode="numeric"
                                 placeholder="от"
                                 value={filters.minPrice}
                                 onChange={(e) => handlePriceChange("minPrice", e.target.value)}
-                                style={{
-                                    flex: 1,
-                                    padding: "8px 10px",
-                                    borderRadius: 10,
-                                    border: "1px solid var(--border-subtle)",
-                                    fontSize: 13,
-                                }}
+                                style={{ ...inputStyle, flex: 1 }}
                             />
                             <input
                                 type="text"
+                                inputMode="numeric"
                                 placeholder="до"
                                 value={filters.maxPrice}
                                 onChange={(e) => handlePriceChange("maxPrice", e.target.value)}
-                                style={{
-                                    flex: 1,
-                                    padding: "8px 10px",
-                                    borderRadius: 10,
-                                    border: "1px solid var(--border-subtle)",
-                                    fontSize: 13,
-                                }}
+                                style={{ ...inputStyle, flex: 1 }}
                             />
                         </div>
                     </div>
 
                     {/* Производитель */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <label
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 500,
-                                marginBottom: 2,
-                            }}
-                        >
-                            Производитель
-                        </label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label style={{ fontSize: 13, fontWeight: 500 }}>Производитель</label>
                         <input
                             type="text"
                             placeholder="Например, Коммунарка"
                             value={filters.manufacturer}
                             onChange={handleManufacturerChange}
-                            style={{
-                                padding: "8px 10px",
-                                borderRadius: 10,
-                                border: "1px solid var(--border-subtle)",
-                                fontSize: 13,
-                            }}
+                            style={inputStyle}
                         />
                     </div>
 
@@ -263,14 +265,16 @@ const CatalogPage = () => {
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 8,
+                            gap: 10,
                             fontSize: 13,
+                            userSelect: "none",
                         }}
                     >
                         <input
                             type="checkbox"
                             checked={filters.inStock}
                             onChange={handleInStockChange}
+                            style={{ accentColor: "var(--accent, #ef4444)" }}
                         />
                         Только в наличии
                     </label>
@@ -279,33 +283,23 @@ const CatalogPage = () => {
 
             {/* Список товаров */}
             <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {/* Верхняя панель: счётчик и сортировка */}
+                {/* Верхняя панель */}
                 <div
                     style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
                         gap: 16,
+                        flexWrap: "wrap",
                     }}
                 >
                     <div style={{ fontSize: 14 }}>
-                        Найдено товаров:{" "}
-                        <span style={{ fontWeight: 600 }}>{productsData.total}</span>
+                        Найдено товаров: <span style={{ fontWeight: 600 }}>{productsData.total}</span>
                     </div>
+
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-              Сортировать:
-            </span>
-                        <select
-                            value={filters.sort}
-                            onChange={handleSortChange}
-                            style={{
-                                padding: "6px 10px",
-                                borderRadius: 999,
-                                border: "1px solid var(--border-subtle)",
-                                fontSize: 13,
-                            }}
-                        >
+                        <span style={{ fontSize: 13, color: "var(--text-muted, #6b7280)" }}>Сортировать:</span>
+                        <select value={filters.sort} onChange={handleSortChange} style={pillSelectStyle}>
                             <option value="new">Сначала новинки</option>
                             <option value="price_asc">По цене: по возрастанию</option>
                             <option value="price_desc">По цене: по убыванию</option>
@@ -314,14 +308,14 @@ const CatalogPage = () => {
                     </div>
                 </div>
 
-                {/* Состояния загрузки/ошибки/пусто */}
+                {/* Состояния */}
                 {loading && (
                     <div
                         style={{
                             padding: 24,
                             textAlign: "center",
                             fontSize: 14,
-                            color: "var(--text-muted)",
+                            color: "var(--text-muted, #6b7280)",
                         }}
                     >
                         Загрузка товаров...
@@ -347,12 +341,11 @@ const CatalogPage = () => {
                         style={{
                             padding: 24,
                             borderRadius: 12,
-                            backgroundColor: "var(--bg-muted)",
+                            backgroundColor: "var(--bg-muted, rgba(0,0,0,.04))",
                             fontSize: 14,
                         }}
                     >
-                        По выбранным фильтрам товаров не найдено. Попробуйте изменить
-                        параметры поиска.
+                        По выбранным фильтрам товаров не найдено. Попробуйте изменить параметры поиска.
                     </div>
                 )}
 
@@ -360,11 +353,7 @@ const CatalogPage = () => {
                 {!loading && !error && productsData.items.length > 0 && (
                     <div className="grid grid-3">
                         {productsData.items.map((product) => (
-                            <ProductCard
-                                key={product._id}
-                                product={product}
-                                onAddToCart={handleAddToCart}
-                            />
+                            <ProductCard key={product._id} product={product} onAddToCart={handleAddToCart} />
                         ))}
                     </div>
                 )}
@@ -378,6 +367,7 @@ const CatalogPage = () => {
                             justifyContent: "center",
                             gap: 8,
                             fontSize: 13,
+                            flexWrap: "wrap",
                         }}
                     >
                         <button
@@ -387,18 +377,11 @@ const CatalogPage = () => {
                         >
                             ← Назад
                         </button>
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 4,
-                            }}
-                        >
-                            Страница{" "}
-                            <strong>
-                                {productsData.page}/{productsData.totalPages}
-                            </strong>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            Страница <strong>{productsData.page}/{productsData.totalPages}</strong>
                         </div>
+
                         <button
                             className="btn btn-outline"
                             disabled={productsData.page >= productsData.totalPages}

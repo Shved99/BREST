@@ -96,23 +96,6 @@ const Header = () => {
                         >
                             О компании
                         </button>
-
-                        {/* Контакты — тоже скролл */}
-                        <button
-                            type="button"
-                            onClick={() => handleScrollLink("contacts")}
-                            style={{
-                                border: "none",
-                                background: "transparent",
-                                padding: 0,
-                                margin: 0,
-                                color: "#111827",
-                                cursor: "pointer",
-                                font: "inherit",
-                            }}
-                        >
-                            Контакты
-                        </button>
                     </nav>
 
                     <div style={{ color: "#111827" }}>Доставка с 9:00 до 21:00</div>

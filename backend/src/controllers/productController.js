@@ -162,8 +162,26 @@ async function createProduct(req, res) {
             return res.status(400).json({ message: "Категория не найдена" });
         }
 
+        // Генерация slug из title
+        const slug = title
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w\-]+/g, "")
+            .replace(/\-\-+/g, "-");
+
+        // Проверка уникальности slug
+        let uniqueSlug = slug;
+        let counter = 1;
+        while (await Product.findOne({ slug: uniqueSlug })) {
+            uniqueSlug = `${slug}-${counter}`;
+            counter++;
+        }
+
         const product = await Product.create({
             title,
+            slug: uniqueSlug,
             category,
             description,
             price,

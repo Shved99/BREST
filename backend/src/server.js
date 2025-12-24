@@ -29,11 +29,8 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
-// Раздача статических файлов /uploads (для загруженных картинок)
-app.use(
-    "/uploads",
-    express.static(path.join(__dirname, "..", "uploads"))
-);
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 
 // Тестовый маршрут для проверки здоровья сервера
 app.get("/api/health", (req, res) => {

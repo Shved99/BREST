@@ -1,29 +1,32 @@
+/* eslint-disable react-refresh/only-export-components */
 // src/context/CartContext.jsx
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { normalizeImageUrl } from "../utils/imageHelper.js";
 
 const CartContext = createContext(null);
 
 const STORAGE_KEY = "belarus_market_cart_v1";
 
 export const CartProvider = ({ children }) => {
-    const [items, setItems] = useState([]);
+    const [items, setItems] = useState(() => {
+        // защита на случай SSR / отсутствия window
+        if (typeof window === "undefined") return [];
 
-    // загрузка из localStorage
-    useEffect(() => {
         try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                setItems(JSON.parse(stored));
-            }
+            const stored = window.localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
         } catch (e) {
             console.error("Ошибка чтения корзины из localStorage", e);
+            return [];
         }
-    }, []);
+    });
 
     // сохранение в localStorage
     useEffect(() => {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            if (typeof window !== "undefined") {
+                window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            }
         } catch (e) {
             console.error("Ошибка сохранения корзины", e);
         }
@@ -48,7 +51,7 @@ export const CartProvider = ({ children }) => {
                     quantity: qty,
                     image:
                         product.images && product.images.length > 0
-                            ? product.images[0]
+                            ? normalizeImageUrl(product.images[0])
                             : null,
                     manufacturer: product.manufacturer || "",
                     weight: product.weight || "",

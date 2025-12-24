@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import axiosClient from "../api/axiosClient.js";
 import Button from "../components/common/Button.jsx";
 import { useCart } from "../context/CartContext.jsx";
+import { normalizeImageUrl } from "../utils/imageHelper.js";
 
 const ProductPage = () => {
     const { id } = useParams();
@@ -62,7 +63,7 @@ const ProductPage = () => {
     }
 
     const mainImage =
-        product.images && product.images.length > 0 ? product.images[0] : null;
+        product.images && product.images.length > 0 ? normalizeImageUrl(product.images[0]) : null;
 
     return (
         <div
